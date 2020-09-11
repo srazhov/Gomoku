@@ -14,7 +14,7 @@ namespace Gomoku
             Gomoku Game = new Gomoku(15);
             Game.MakeGrid(false);
 
-            while (true)
+            while (!Game.GameOver)
             {
                 string[] line = Console.ReadLine().Split('/');
                 if (line.Length != 2 || !int.TryParse(line[0], out int PlaceA) || !int.TryParse(line[1], out int PlaceB) || 
@@ -24,7 +24,8 @@ namespace Gomoku
                 Game.MakeMove(PlaceA, PlaceB);
                 Game.MakeGrid(true);
 
-                Console.WriteLine("Make move in format (A/B), Max is 15: ");
+                if(!Game.GameOver)
+                Console.WriteLine("Make move in format (X/Y), 0 - 14: ");
             }
         }
     }
@@ -38,6 +39,7 @@ namespace Gomoku
 
         public readonly GomokuPlayer[] Players;
         public int Size { get; }
+        public bool GameOver { get; private set; }
 
         public Gomoku(int size)
         {
@@ -82,6 +84,11 @@ namespace Gomoku
                         Console.WriteLine("({0}) -:- ({1} : {2}) - ({3} : {4}) + Lenght: {5} + Type: {6}", player.Symbol, line.Start.X, line.Start.Y, line.End.X, line.End.Y, line.Lenght, line.LineType);
                 }
             }
+            if(GameOver)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Player ({0}) has won!!!", Players[Convert.ToInt32(currentPlayer)].Symbol);
+            }    
         }
         
         //Делает ход за определенного игрока и записывает его в Field
@@ -89,11 +96,15 @@ namespace Gomoku
         {
             if (Field_[X, Y] != '_')
                 throw new ArgumentException();
+            int current = Convert.ToInt32(currentPlayer);
 
-            Players[Convert.ToInt32(currentPlayer)].MakeMove(X, Y);
-            Field_[X, Y] = Players[Convert.ToInt32(currentPlayer)].Symbol;
+            Players[current].MakeMove(X, Y);
+            Field_[X, Y] = Players[current].Symbol;
 
-            currentPlayer = !currentPlayer;
+            if (Players[current].DidWin())
+                GameOver = true;
+//            else
+//                currentPlayer = !currentPlayer;
         }
     }
 }
