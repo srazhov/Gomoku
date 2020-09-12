@@ -14,15 +14,33 @@ namespace Gomoku
         public readonly List<Point> Occupation_;
         public readonly List<Line> Lines;
 
-        public char Symbol { get; }
+        public char Symbol { get; protected set; }
+        public int MaxSize { get; protected set; }
 
-        public GomokuPlayer(char symbol)
+        public GomokuPlayer() 
+        {
+            Symbol = '+';
+            Occupation_ = new List<Point>();
+            Lines = new List<Line>();
+        }
+        public GomokuPlayer(char symbol, int size)
         {
             Symbol = symbol;
             Occupation_ = new List<Point>();
             Lines = new List<Line>();
+            MaxSize = size;
         }
 
+
+        public virtual int[] ChooseMove(GomokuPlayer Opponent)
+        {
+            string[] line = Console.ReadLine().Split('/');
+            if (line.Length != 2 || !int.TryParse(line[0], out int PlaceA) || !int.TryParse(line[1], out int PlaceB) 
+                || Opponent.Occupation_.Contains(new Point(PlaceA, PlaceB)))
+                throw new ArgumentException();
+
+            return new int[] { PlaceA, PlaceB };
+        }
         //Выбрасывает исключение если точка уже существует
         //Добавляет в список Point координаты новой точки
         //Начинает проверять соседние клетки на наличие уже зарегистрированных точек

@@ -113,6 +113,17 @@ namespace Gomoku
                 }
             return false;
         }
+
+        public Point GetNext(bool Start) 
+        {
+            Point temp = Start ? this.Start : this.End;
+            for (int x = -1; x <= 1; x++)
+                for (int y = -1; y <= 1; y++)
+                    if (GetCondition(x, y, !Start, false))
+                        return new Point(temp.X + x, temp.Y + y);
+            return new Point();
+        }
+
         //Пояснение: у разных типов разные условия, при которых возможно соединение точки с отрезком
         //Кроме общих точек, различные условии есть и у начальных и конечных точек
         private bool GetCondition(int x, int y, bool Start, bool Single)

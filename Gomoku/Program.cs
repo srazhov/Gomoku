@@ -11,21 +11,22 @@ namespace Gomoku
     {
         static void Main()
         {
-            Gomoku Game = new Gomoku(15);
+            Gomoku Game = new Gomoku(15, new GomokuPlayer[] { new AI('X', 15), new AI('O', 15) });
             Game.MakeGrid(false);
 
             while (!Game.GameOver)
             {
-                string[] line = Console.ReadLine().Split('/');
-                if (line.Length != 2 || !int.TryParse(line[0], out int PlaceA) || !int.TryParse(line[1], out int PlaceB) || 
-                    PlaceA > 15 || PlaceB > 15)
-                    continue;
+                int[] places;
+                try { places = Game.Players[Convert.ToInt32(Game.currentPlayer)].ChooseMove(Game.Players[Convert.ToInt32(!Game.currentPlayer)]); }
+                catch { continue; }
 
-                Game.MakeMove(PlaceA, PlaceB);
-                Game.MakeGrid(true);
+                Game.MakeMove(places[0], places[1]);
+                Game.MakeGrid(false);
 
-                if(!Game.GameOver)
-                Console.WriteLine("Make move in format (X/Y), 0 - 14: ");
+                if (!Game.GameOver)
+                    Console.WriteLine("Make move in format (X/Y), 0 - 14: ");
+
+                Console.ReadKey();
             }
         }
     }
@@ -35,13 +36,13 @@ namespace Gomoku
         private char[,] Field_;
 
         //false - 0, true - 1
-        bool currentPlayer;
+        public bool currentPlayer;
 
         public readonly GomokuPlayer[] Players;
         public int Size { get; }
         public bool GameOver { get; private set; }
 
-        public Gomoku(int size)
+        public Gomoku(int size, GomokuPlayer[] players)
         {
             Size = size;
             Field_ = new char[Size, Size];
@@ -49,7 +50,7 @@ namespace Gomoku
                 for (int b = 0; b < Size; b++)
                     Field_[i, b] = '_';
 
-            Players = new GomokuPlayer[] { new GomokuPlayer('X'), new GomokuPlayer('O') };
+            Players = players;
         }
 
         //Создает сетку в консоли с обозначениями игроков и пустых клеток
@@ -84,18 +85,24 @@ namespace Gomoku
                         Console.WriteLine("({0}) -:- ({1} : {2}) - ({3} : {4}) + Lenght: {5} + Type: {6}", player.Symbol, line.Start.X, line.Start.Y, line.End.X, line.End.Y, line.Lenght, line.LineType);
                 }
             }
-            if(GameOver)
+            if (GameOver)
             {
                 Console.WriteLine();
                 Console.WriteLine("Player ({0}) has won!!!", Players[Convert.ToInt32(currentPlayer)].Symbol);
-            }    
+                foreach (Line TempLine in Players[Convert.ToInt32(currentPlayer)].Lines)
+                    if (TempLine.Lenght == 5)
+                    {
+                        Console.WriteLine("Winning Line (X/Y) is -:- ({0} : {1}) - ({2} : {3})", 
+                            TempLine.Start.X, TempLine.Start.Y, TempLine.End.X, TempLine.End.Y);
+                        break;
+                    }
+
+            }
         }
-        
+
         //Делает ход за определенного игрока и записывает его в Field
-        public void MakeMove(int X, int Y) 
+        public void MakeMove(int X, int Y)
         {
-            if (Field_[X, Y] != '_')
-                throw new ArgumentException();
             int current = Convert.ToInt32(currentPlayer);
 
             Players[current].MakeMove(X, Y);
@@ -103,8 +110,8 @@ namespace Gomoku
 
             if (Players[current].DidWin())
                 GameOver = true;
-//            else
-//                currentPlayer = !currentPlayer;
+            else
+                currentPlayer = !currentPlayer;
         }
     }
 }
